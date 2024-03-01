@@ -12,8 +12,8 @@ const PORT = 3012;
 
 // Limiter le taux de requêtes par IP
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limite chaque IP à 100 requêtes par fenêtre
+    windowMs: 60 * 1000, // 1 minutes
+    max: 10 // limite de 10
 });
 
 // Utiliser le middleware de limite de taux
