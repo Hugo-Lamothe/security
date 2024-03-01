@@ -2,11 +2,22 @@
 const express = require('express');
 const mysql = require('mysql');
 const multer = require("multer");
+const rateLimit = require("express-rate-limit");
+const nodemailer = require('nodemailer');
 const upload = multer();
 
 // Création de l'application Express
 const app = express();
 const PORT = 3012;
+
+// Limiter le taux de requêtes par IP
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limite chaque IP à 100 requêtes par fenêtre
+});
+
+// Utiliser le middleware de limite de taux
+app.use(limiter);
 
 // Configuration de la connexion à la base de données MySQL
 const db = mysql.createConnection({
@@ -31,9 +42,12 @@ app.use(express.json());
 // Route pour gérer les requêtes POST du formulaire de contact
 app.post('/submit', upload.none(), (req, res, next) => {
     // Récupération des données du formulaire
-    const { name, email, message } = req.body;
+    let { name, email, message } = req.body;
 
-    // Validation et nettoyage des données (à implémenter)
+    // Validation et nettoyage des données
+    name = mysql.escape(name);
+    email = mysql.escape(email);
+    message = mysql.escape(message);
 
     // Enregistrement des données dans la base de données
     const sql = 'INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)';
@@ -42,6 +56,7 @@ app.post('/submit', upload.none(), (req, res, next) => {
             res.status(500).send('Erreur lors de l\'enregistrement des données dans la base de données');
             throw err;
         }
+
         res.status(200).send('Données enregistrées avec succès');
     });
 });
